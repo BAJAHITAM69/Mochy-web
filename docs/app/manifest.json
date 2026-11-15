@@ -1,0 +1,17 @@
+{
+  "name": "Mochy Music",
+  "short_name": "Mochy",
+  "description": "Music, with style <3. Web Player with 10-band Parametric EQ, AutoEq, Freeverb Reverb, Spatial Audio, and Synced Lyrics.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0e0e0f",
+  "theme_color": "#0e0e0f",
+  "icons": [
+    {
+      "src": "../assets/img/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -51,6 +51,7 @@ docs/*
 !docs/assets/
 !docs/wiki/
 !docs/modules/
+!docs/app/
 
 # Logs, crash dumps & API response dumps
 *.log

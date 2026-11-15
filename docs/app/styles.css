@@ -1,0 +1,1372 @@
+/* docs/app/styles.css - Mochy Music Web (1:1 Design System & UX from Mochy Android) */
+:root {
+  --bg: #0e0e0f;
+  --bg-deep: #070708;
+  --stage: #0e0e10;
+  --card: #1c1c1e;
+  --card-alt: #161618;
+  --row: #26262a;
+  --row-selected: #34343a;
+  --chip: #232327;
+  --line: #2e2e32;
+  --fg: #ffffff;
+  --soft: #9a9aa0;
+  --faint: #5c5c63;
+  --ink: #8a8a92;
+  --accent: #f5e27a;
+  --accent-rgb: 245, 226, 122;
+  --green: #30d158;
+  --amber: #ffb340;
+  --red: #ff6b5e;
+  --ambient-1: #3b2d54;
+  --ambient-2: #181326;
+  --font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--fg);
+  font-family: var(--font);
+  letter-spacing: -0.014em;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Dotted background from Mochy concept */
+.dots-bg {
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.065) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+
+/* App Shell: Phone-first or responsive desktop studio layout */
+.mochy-shell {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+@media (min-width: 960px) {
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 20% 20%, rgba(var(--accent-rgb), 0.08), transparent 45%),
+                radial-gradient(circle at 80% 80%, var(--ambient-1), #050506 70%);
+  }
+  .mochy-shell.phone-mode {
+    width: 430px;
+    height: min(920px, 95dvh);
+    border-radius: 46px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 36px 100px rgba(0, 0, 0, 0.78);
+  }
+  .mochy-shell.wide-mode {
+    width: min(1360px, 96vw);
+    height: min(900px, 94dvh);
+    border-radius: 32px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 32px 90px rgba(0, 0, 0, 0.75);
+    display: grid;
+    grid-template-columns: 1fr 410px;
+  }
+}
+
+/* Press bounce micro-interaction */
+.press {
+  transition: transform 0.36s var(--spring), background-color 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+}
+.press:active {
+  transform: scale(0.94);
+  transition: transform 0.09s ease-out;
+}
+
+/* Top Bar */
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  background: linear-gradient(180deg, rgba(14, 14, 15, 0.88) 0%, rgba(14, 14, 15, 0) 100%);
+  pointer-events: none;
+}
+.top-bar > * {
+  pointer-events: auto;
+}
+
+.mochy-logo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  color: var(--fg);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  padding: 4px 6px;
+  border-radius: 14px;
+}
+.mochy-logo-btn img, .mochy-logo-btn svg {
+  width: 30px;
+  height: 32px;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(28, 28, 30, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--fg);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.icon-circle-btn svg {
+  width: 19px;
+  height: 19px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon-circle-btn.active {
+  background: rgba(var(--accent-rgb), 0.2);
+  border-color: rgba(var(--accent-rgb), 0.5);
+  color: var(--accent);
+}
+
+/* Main Scrollable Viewport */
+.main-pane {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 175px;
+  scroll-behavior: smooth;
+}
+.main-pane::-webkit-scrollbar {
+  width: 5px;
+}
+.main-pane::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 99px;
+}
+
+/* Screen Title */
+.screen-header {
+  padding: 6px 20px 14px;
+}
+.screen-title {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+.screen-subtitle {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--soft);
+}
+
+/* Hero Banner (HomeScreen.kt) */
+.hero-banner {
+  position: relative;
+  margin: 0 16px 22px;
+  height: 256px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: #141417;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.48);
+}
+.hero-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.75) saturate(1.15);
+  transition: transform 0.6s var(--ease-out);
+}
+.hero-banner:hover img {
+  transform: scale(1.04);
+}
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(14,14,15,0.08) 0%, rgba(14,14,15,0.45) 52%, rgba(14,14,15,0.94) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 22px;
+}
+.hero-eyebrow {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 3px;
+}
+.hero-eyebrow b {
+  color: #fff;
+  font-weight: 800;
+}
+.hero-title {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.hero-cta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.88);
+  color: #0b0b0c;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+.hero-pill-btn.secondary {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  backdrop-filter: blur(12px);
+}
+
+/* Section Headers */
+.section-block {
+  margin-bottom: 24px;
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 12px;
+}
+.section-head h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-head h2 span.chev {
+  color: var(--soft);
+  font-weight: 600;
+}
+.section-action {
+  background: var(--chip);
+  border: 0;
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+/* Horizontal Shelf Cards (Recently Played, Quick Picks) */
+.h-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 2px 20px 8px;
+  scrollbar-width: none;
+}
+.h-scroll::-webkit-scrollbar {
+  display: none;
+}
+.album-card {
+  flex: 0 0 144px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+}
+.album-art-wrap {
+  position: relative;
+  width: 144px;
+  height: 144px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.36);
+}
+.album-art-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.album-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(10, 10, 12, 0.75);
+  backdrop-filter: blur(8px);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.album-play-fab {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(14, 14, 15, 0.85);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.album-card:hover .album-play-fab,
+.album-card.playing .album-play-fab {
+  opacity: 1;
+  transform: translateY(0);
+}
+.album-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.album-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: -4px;
+}
+
+/* Speed Dial 2x3 Grid */
+.speed-dial-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 0 20px;
+}
+.speed-dial-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+.speed-dial-item.playing {
+  background: var(--row-selected);
+  border-color: rgba(var(--accent-rgb), 0.4);
+}
+.speed-dial-item img {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.speed-dial-meta {
+  min-width: 0;
+  flex: 1;
+}
+.speed-dial-title {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.speed-dial-artist {
+  font-size: 11.5px;
+  color: var(--soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Song Rows (Grouped Rounded Containers like Mochy Items.kt) */
+.song-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 16px;
+}
+.song-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  background: var(--card);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.song-row:first-child {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+.song-row:last-child {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+.song-row:only-child {
+  border-radius: 20px;
+}
+.song-row.playing {
+  background: var(--row-selected);
+}
+.song-row-art {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #222;
+}
+.song-row-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.song-row-info {
+  flex: 1;
+  min-width: 0;
+}
+.song-row-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.song-row.playing .song-row-title {
+  color: var(--accent);
+}
+.song-row-sub {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+.codec-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.codec-pill.flac {
+  border-color: rgba(245, 226, 122, 0.55);
+  color: var(--accent);
+}
+.song-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.row-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--soft);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.row-icon-btn.liked {
+  color: var(--red);
+}
+.row-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* Search Bar & Moods Grid (app-search.webp) */
+.search-box-wrap {
+  padding: 0 20px 16px;
+}
+.search-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  padding: 11px 18px;
+}
+.search-input-bar svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--soft);
+  flex-shrink: 0;
+}
+.search-input-bar input {
+  flex: 1;
+  background: none;
+  border: 0;
+  outline: none;
+  color: #fff;
+  font: 600 14.5px var(--font);
+}
+.search-input-bar input::placeholder {
+  color: var(--faint);
+}
+
+.moods-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 20px;
+}
+.mood-card {
+  position: relative;
+  height: 88px;
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.mood-card .mood-thumbs {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: flex;
+}
+.mood-card .mood-thumbs img {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.45);
+}
+.mood-card .mood-thumbs img:first-child {
+  transform: rotate(-12deg) translate(10px, -4px);
+}
+.mood-card .mood-thumbs img:last-child {
+  transform: rotate(6deg);
+}
+
+/* Filter Chips (All / Local / Cached / Imported / Liked) */
+.chip-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chip-bar::-webkit-scrollbar {
+  display: none;
+}
+.filter-chip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--chip);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--soft);
+  font: 700 13px var(--font);
+  white-space: nowrap;
+}
+.filter-chip.active {
+  background: #3a3a40;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Import Banner Card (app-library.webp) */
+.import-card {
+  margin: 0 20px 18px;
+  padding: 18px;
+  border-radius: 24px;
+  background: #17171a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.import-icons-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+.service-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.import-card h3 {
+  margin: 0 0 4px;
+  font-size: 16.5px;
+  font-weight: 800;
+}
+.import-card p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--soft);
+}
+
+/* Audio Lab Cards (app-audiolab.webp, EqualizerScreen.kt, ReverbCard.kt) */
+.audiolab-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 16px;
+}
+.lab-hero-card {
+  position: relative;
+  border-radius: 26px;
+  background: var(--card);
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.lab-status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.lab-status-dot i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+.lab-status-dot.on {
+  color: var(--green);
+}
+.lab-status-dot.on i {
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+}
+.lab-hero-card h3 {
+  margin: 18px 0 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.lab-bg-art {
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  bottom: -8px;
+  width: 165px;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.lab-card {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.lab-stage {
+  position: relative;
+  background: var(--stage);
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.lab-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.lab-toggle-row h4 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+}
+.lab-toggle-row p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--soft);
+}
+
+/* Mochy Switch */
+.mochy-switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  background: #323236;
+  border: 0;
+  padding: 3px;
+  cursor: pointer;
+  transition: background-color 0.22s ease;
+  flex-shrink: 0;
+}
+.mochy-switch.on {
+  background: var(--green);
+}
+.mochy-switch span {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.26s var(--spring);
+}
+.mochy-switch.on span {
+  transform: translateX(20px);
+}
+
+/* Segmented Tabs (Graph / Bands / AutoEq) */
+.segmented-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: #141416;
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 12px 0;
+}
+.segmented-tabs button {
+  border: 0;
+  background: transparent;
+  color: var(--soft);
+  font: 700 13px var(--font);
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.segmented-tabs button.active {
+  background: var(--row-selected);
+  color: #fff;
+}
+
+/* Lab Sliders */
+.lab-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 0;
+}
+.lab-slider-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.lab-slider-head span:last-child {
+  color: var(--soft);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+input[type="range"].mochy-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #2e2e34;
+  outline: none;
+}
+input[type="range"].mochy-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+/* Floating Mini Player & Bottom Nav Pill (app-home.webp) */
+.bottom-dock {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.bottom-dock > * {
+  pointer-events: auto;
+}
+@media (min-width: 960px) {
+  .mochy-shell.wide-mode .bottom-dock {
+    right: 426px;
+  }
+}
+
+.mini-player-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 64px;
+  padding: 7px 14px 7px 8px;
+  border-radius: 22px;
+  background: rgba(24, 24, 27, 0.88);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.09), 0 14px 34px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  overflow: hidden;
+}
+.mini-progress-bar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 2.5px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.mini-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.15s linear;
+}
+.mini-art {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.mini-meta {
+  flex: 1;
+  min-width: 0;
+}
+.mini-title {
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-artist {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.mini-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.mini-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+/* 4-Tab Bottom Navigation Pill */
+.nav-pill {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: 62px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(19, 19, 21, 0.86);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 14px 36px rgba(0, 0, 0, 0.55);
+}
+.nav-pill-btn {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font: 700 12px var(--font);
+  cursor: pointer;
+  transition: color 0.22s ease, background-color 0.25s ease;
+}
+.nav-pill-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.nav-pill-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Fullscreen / Right-Pane Flagship Player Sheet (app-player.webp) */
+.player-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: radial-gradient(circle at 50% 18%, var(--ambient-1), var(--ambient-2) 58%, #09090b 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 24px 22px;
+  transform: translateY(104%);
+  transition: transform 0.44s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow-y: auto;
+}
+.player-sheet.open {
+  transform: translateY(0%);
+}
+
+@media (min-width: 960px) {
+  .mochy-shell.wide-mode .player-sheet {
+    position: relative;
+    inset: auto;
+    transform: none !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    height: 100%;
+    z-index: 10;
+  }
+  .mochy-shell.wide-mode .mini-player-pill {
+    display: none;
+  }
+}
+
+.player-handle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.sheet-grabber {
+  width: 42px;
+  height: 4.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  margin: 0 auto;
+}
+
+/* Player Cover Stage */
+.player-cover-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 360px;
+  margin: 4px auto 14px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  background: #141418;
+}
+.player-cover-stage img.main-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s var(--ease-out);
+}
+.player-cover-stage.playing img.main-cover {
+  transform: scale(1.02);
+}
+
+/* Turntable Vinyl Style */
+.turntable-disc {
+  width: 88%;
+  height: 88%;
+  margin: 6% auto;
+  border-radius: 50%;
+  background: radial-gradient(circle, #111 18%, #1d1d20 20%, #0d0d0f 45%, #1b1b1e 47%, #0a0a0c 100%);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.75), inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+  display: grid;
+  place-items: center;
+  animation: vinyl-spin 14s linear infinite;
+  animation-play-state: paused;
+}
+.turntable-disc.spinning {
+  animation-play-state: running;
+}
+.turntable-disc img {
+  width: 44%;
+  height: 44%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #09090b;
+}
+@keyframes vinyl-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* iPod Classic Click-Wheel Style (IpodPlayerStyle.kt) */
+.ipod-shell {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  background: linear-gradient(165deg, #e6e7ec 0%, #c6c8d0 50%, #aeb1ba 100%);
+  border-radius: 34px;
+  padding: 18px;
+  color: #121316;
+  box-shadow: inset 0 2px 3px rgba(255,255,255,0.8), 0 24px 60px rgba(0,0,0,0.65);
+}
+.ipod-screen {
+  background: linear-gradient(180deg, #f4f6fa 0%, #dfe4ee 100%);
+  border: 3px solid #2b2d33;
+  border-radius: 12px;
+  padding: 12px;
+  height: 196px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.18);
+}
+.ipod-wheel {
+  position: relative;
+  width: 206px;
+  height: 206px;
+  margin: 22px auto 8px;
+  border-radius: 50%;
+  background: #fdfdfe;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22), inset 0 0 0 1px rgba(0,0,0,0.08);
+  display: grid;
+  place-items: center;
+}
+.ipod-center-btn {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #d3d5dc 0%, #b8bbc4 100%);
+  border: 1px solid rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+.ipod-wheel-label {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #6b6e78;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.ipod-wheel-label.top { top: 14px; }
+.ipod-wheel-label.bottom { bottom: 14px; }
+.ipod-wheel-label.left { left: 14px; }
+.ipod-wheel-label.right { right: 14px; }
+
+/* Player Meta & Controls (app-player.webp) */
+.player-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.player-title-wrap {
+  min-width: 0;
+  flex: 1;
+}
+.player-title-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.player-song-title {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-song-artist {
+  margin: 3px 0 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-seek-wrap {
+  margin-bottom: 14px;
+}
+.player-time-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.68);
+  margin-top: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-transport-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 6px 0 18px;
+}
+.transport-btn {
+  background: none;
+  border: 0;
+  color: #fff;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.transport-btn.play-main {
+  width: 68px;
+  height: 68px;
+}
+.transport-btn svg {
+  width: 34px;
+  height: 34px;
+  fill: currentColor;
+}
+.transport-btn.play-main svg {
+  width: 44px;
+  height: 44px;
+}
+
+/* Bottom Pill inside Flagship Player (Lyrics / Queue / Audio Lab / Styles) */
+.player-bottom-card {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.player-dots {
+  display: flex;
+  gap: 6px;
+}
+.player-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+}
+.player-dots span.on {
+  background: #fff;
+}
+.player-pill-tabs {
+  display: flex;
+  gap: 6px;
+}
+.player-pill-tabs button {
+  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font: 700 11.5px var(--font);
+  cursor: pointer;
+}
+.player-pill-tabs button.active {
+  background: #fff;
+  color: #0b0b0c;
+}
+
+/* Flowing Word-by-Word Glow Lyrics View (app-lyrics.webp & LyricsGlowLine.kt) */
+.lyrics-stage {
+  height: 350px;
+  overflow-y: auto;
+  padding: 18px 8px 90px;
+  scroll-behavior: smooth;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 85%, transparent 100%);
+}
+.lyrics-stage::-webkit-scrollbar {
+  display: none;
+}
+.lyric-line {
+  padding: 10px 8px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.28;
+  letter-spacing: -0.03em;
+  color: rgba(255, 255, 255, 0.28);
+  filter: blur(1.6px);
+  transform: scale(0.96);
+  transform-origin: left center;
+  transition: transform 0.38s var(--ease-out), filter 0.38s ease, color 0.3s ease;
+  cursor: pointer;
+}
+.lyric-line.near {
+  filter: blur(0.7px);
+  color: rgba(255, 255, 255, 0.42);
+}
+.lyric-line.active {
+  filter: blur(0px);
+  transform: scale(1);
+  color: #fff;
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.45);
+}
+.lyric-word {
+  display: inline-block;
+  margin-right: 0.26em;
+  transition: color 0.12s ease, text-shadow 0.18s ease, transform 0.18s ease;
+}
+.lyric-word.sung {
+  color: #ffffff;
+  text-shadow: 0 0 18px rgba(var(--accent-rgb), 0.75);
+  transform: translateY(-1px);
+}
+.lyric-word.unsung {
+  color: rgba(255, 255, 255, 0.35);
+}
+.lyric-roman {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  opacity: 0.85;
+  margin-top: 3px;
+}
+
+/* Stats Donut & Recap Card (app-stats.webp) */
+.stats-card {
+  margin: 0 16px 14px;
+  padding: 20px;
+  border-radius: 26px;
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.stats-big-time {
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  margin: 8px 0 14px;
+}
+.stats-big-time small {
+  font-size: 24px;
+  color: var(--soft);
+  margin: 0 4px 0 1px;
+}
+
+/* Modal / Dialog */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(12px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.modal-sheet {
+  width: 100%;
+  max-width: 410px;
+  background: #1b1b1f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  padding: 22px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.75);
+}

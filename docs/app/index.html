@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mochy Music — Web Player &amp; Audio Lab</title>
+  <meta name="description" content="Mochy Music Web Player: 1:1 Android UX with 10-band Parametric EQ, AutoEq, Freeverb Reverb, BS2B &amp; Spherical Head Spatial Audio, and Word-Synced Glow Lyrics.">
+  <meta name="theme-color" content="#0e0e0f">
+  <link rel="icon" href="../assets/img/logo.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div id="mochyShell" class="mochy-shell dots-bg wide-mode">
+    <!-- Left / Main Application Stage -->
+    <div class="left-stage" style="display:flex;flex-direction:column;flex:1;height:100%;min-height:0;overflow:hidden;position:relative">
+      <!-- Sticky Top Bar -->
+      <header class="top-bar">
+        <button class="mochy-logo-btn press" type="button" data-action="open-audiolab" title="Mochy Music">
+          <img src="../assets/img/logo.svg" alt="Mochy">
+          <span>Mochy</span>
+        </button>
+
+        <div class="top-actions">
+          <button class="icon-circle-btn press" type="button" data-action="upload-local" title="Load Local Audio Files (FLAC / WAV / MP3)">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L8 8m4-4 4 4M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
+          </button>
+          <button class="icon-circle-btn press" type="button" data-action="toggle-layout" title="Switch Phone / Studio Layout">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
+          </button>
+          <button class="icon-circle-btn press" type="button" data-action="go-stats" title="Listening Stats &amp; Re'cap">
+            <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          </button>
+          <button class="icon-circle-btn press" type="button" data-action="go-settings" title="Settings &amp; Modules">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic Screen Content -->
+      <main id="mainPane" class="main-pane" aria-live="polite"></main>
+    </div>
+
+    <!-- Floating Mini Player Pill + 4-Tab Navigation Dock -->
+    <div class="bottom-dock">
+      <div id="miniPlayerPill" class="mini-player-pill press" data-action="open-player" role="button" tabindex="0" aria-label="Open Now Playing">
+        <img id="miniArt" class="mini-art" src="https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/7b/50/a5/7b50a512-e222-8f64-273d-5c3723482e4d/859746671413_cover.jpg/600x600bb.jpg" alt="">
+        <div class="mini-meta">
+          <div id="miniTitle" class="mini-title">Royalty</div>
+          <div id="miniArtist" class="mini-artist">Egzod, Maestro Chives, Neoni</div>
+        </div>
+        <div class="mini-controls">
+          <button id="miniPlayBtn" class="mini-btn press" type="button" data-action="toggle-play" aria-label="Play or Pause">
+            <svg viewBox="0 0 24 24"><path d="M7 5.5v13l11-6.5-11-6.5z"/></svg>
+          </button>
+          <button class="mini-btn press" type="button" data-action="next" aria-label="Next Track">
+            <svg viewBox="0 0 24 24"><path d="M5.5 6v12l8.5-6-8.5-6zm9.5 0v12h2.5V6H15z"/></svg>
+          </button>
+        </div>
+        <div class="mini-progress-bar">
+          <div id="miniProgressFill" class="mini-progress-fill"></div>
+        </div>
+      </div>
+
+      <nav class="nav-pill" aria-label="Primary Navigation">
+        <button class="nav-pill-btn active press" type="button" data-tab="home">
+          <svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V20h-5v-5H9v5H4z"/></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav-pill-btn press" type="button" data-tab="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>
+          <span>Search</span>
+        </button>
+        <button class="nav-pill-btn press" type="button" data-tab="library">
+          <svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="3"/><path d="M10 15.5a1.5 1.5 0 1 1-1.5-1.5H10V9h4"/></svg>
+          <span>Library</span>
+        </button>
+        <button class="nav-pill-btn press" type="button" data-tab="audiolab">
+          <svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+          <span>Audio Lab</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Fullscreen / Studio Right-Pane Flagship Player Sheet -->
+    <aside id="playerSheet" class="player-sheet" aria-label="Now Playing"></aside>
+  </div>
+
+  <!-- Hidden Local File Input for FLAC / WAV / MP3 / OGG / M4A -->
+  <input id="localFileInput" type="file" accept="audio/*" multiple hidden>
+
+  <script src="data.js"></script>
+  <script src="dsp-visualizer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
