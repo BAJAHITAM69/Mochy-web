@@ -245,7 +245,7 @@
   const streamCache = new Map();
 
   async function resolveStreamUrl(track) {
-    if (track.streamUrl) return { url: track.streamUrl, source: track.source || 'Local File', codec: track.codec || 'FLAC' };
+    if (track.streamUrl) return { url: track.streamUrl, source: track.source || 'Local File', codec: track.codec || 'Unknown' };
     if (streamCache.has(track.id)) return streamCache.get(track.id);
 
     // 1. If track has direct Audius ID, use full-length CORS-enabled stream
@@ -256,38 +256,7 @@
       return resolved;
     }
 
-    const q = track.searchQuery || `${track.title} ${track.artist}`;
-
-    // 2. Try Audius Search for full-length stream
-    try {
-      const res = await fetch(`https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&limit=3`);
-      if (res.ok) {
-        const json = await res.json();
-        const hit = (json.data || [])[0];
-        if (hit && hit.id) {
-          const url = `https://api.audius.co/v1/tracks/${encodeURIComponent(hit.id)}/stream`;
-          const resolved = { url, source: 'Audius · Full Stream', codec: track.codec || 'OPUS' };
-          streamCache.set(track.id, resolved);
-          return resolved;
-        }
-      }
-    } catch {}
-
-    // 3. Try Apple Music / iTunes AAC 256 stream
-    try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=3`);
-      if (res.ok) {
-        const json = await res.json();
-        const hit = (json.results || []).find(r => r.previewUrl);
-        if (hit && hit.previewUrl) {
-          const resolved = { url: hit.previewUrl, source: 'Apple Music · AAC 256', codec: 'AAC 256' };
-          streamCache.set(track.id, resolved);
-          return resolved;
-        }
-      }
-    } catch {}
-
-    throw new Error('Could not resolve audio stream');
+    throw new Error('This track has no verified source. Search and select a catalog result or load a local file.');
   }
 
   // ---- Multi-Provider Lyrics Engine (YouLyPlus Word TTML + LRCLib + Romanizer) ----
@@ -484,8 +453,13 @@
     return state.queue[state.currentIndex] || state.queue[0];
   }
 
+  let playbackRequest = 0;
   async function loadAndPlayTrack(index, autoPlay = true) {
     if (index < 0 || index >= state.queue.length) return;
+    const request = ++playbackRequest;
+    audioEl.pause();
+    state.isPlaying = false;
+    playbackNotice("Loading audio…");
     state.currentIndex = index;
     const track = currentTrack();
     state.currentTime = 0;
@@ -508,6 +482,7 @@
       state.isBuffering = true;
       updateTransportIcons();
       const resolved = await resolveStreamUrl(track);
+      if (request !== playbackRequest) return;
       track.source = resolved.source;
       track.codec = resolved.codec;
       audioEl.src = resolved.url;
@@ -517,12 +492,17 @@
       if (autoPlay) {
         await initAudioGraph();
         await audioEl.play();
+        if (request !== playbackRequest) return;
         state.isPlaying = true;
+        playbackNotice(track.id.startsWith("apple-") ? "iTunes preview — not the full song" : "Playing · " + track.source);
       }
     } catch (err) {
+      if (request !== playbackRequest) return;
+      playbackNotice('Unable to play: ' + err.message);
       console.warn('Playback resolve/play warning:', err);
       state.isPlaying = false;
     } finally {
+      if (request !== playbackRequest) return;
       state.isBuffering = false;
       updateTransportIcons();
       renderMainView();
@@ -569,6 +549,8 @@
     const prev = (state.currentIndex - 1 + state.queue.length) % state.queue.length;
     loadAndPlayTrack(prev, true);
   }
+
+  audioEl.addEventListener('error', () => { state.isPlaying = false; state.isBuffering = false; playbackNotice('Audio unavailable. Try again or select another catalog result.'); updateTransportIcons(); });
 
   audioEl.addEventListener('timeupdate', () => {
     state.currentTime = audioEl.currentTime || 0;
@@ -630,7 +612,9 @@
     searchTimer = setTimeout(() => performOnlineSearch(query.trim()), 280);
   }
 
+  let searchRequest = 0;
   async function performOnlineSearch(query) {
+    const request = ++searchRequest;
     try {
       const [audiusRes, itunesRes] = await Promise.allSettled([
         fetch(`https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(query)}&limit=8`).then(r => r.json()),
@@ -646,7 +630,7 @@
             artist: t.user?.name || t.user?.handle || 'Unknown Artist',
             album: t.genre || 'Single',
             duration: t.duration || 180,
-            codec: 'OPUS',
+            codec: 'Full stream',
             source: 'Audius · Full Stream',
             genre: t.genre || 'Electronic',
             artwork: t.artwork?.['480x480'] || t.artwork?.['150x150'] || DATA.seedTracks[0].artwork,
@@ -666,8 +650,8 @@
             artist: r.artistName || 'Unknown Artist',
             album: r.collectionName || 'Single',
             duration: Math.round((r.trackTimeMillis || 180000) / 1000),
-            codec: 'AAC 256',
-            source: 'Apple Music',
+            codec: 'Preview',
+            source: 'iTunes · Preview',
             genre: r.primaryGenreName || 'Pop',
             artwork: (r.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
             streamUrl: r.previewUrl,
@@ -677,10 +661,19 @@
         }
       }
 
-      state.searchResults = combined;
+      if (request !== searchRequest || query !== state.searchQuery.trim()) return;
+      const words = normalize(query).split(' ').filter(Boolean);
+      const scored = combined.map(t => {
+        const text = normalize(t.title + ' ' + t.artist);
+        const coverage = words.filter(w => text.includes(w)).length / words.length;
+        t.versionLabel = /\b(cover|tribute|karaoke|instrumental|remix|live|sped up|slowed)\b/i.test(t.title + ' ' + t.artist) ? 'Alternate version / cover' : (t.id.startsWith('apple-') ? 'Catalog recording · verify artist' : 'Upload · originality unverified');
+        return {t, score: coverage - (t.versionLabel.startsWith('Alternate') && !/cover|remix|live|karaoke/i.test(query) ? .15 : 0), coverage};
+      });
+      state.searchResults = scored.filter(x => x.coverage >= .6).sort((a,b)=>b.score-a.score).map(x=>x.t);
     } catch (e) {
       console.warn('Search error:', e);
     } finally {
+      if (request !== searchRequest || query !== state.searchQuery.trim()) return;
       state.searchLoading = false;
       if (state.activeTab === 'search') renderMainView();
     }
@@ -747,68 +740,7 @@
 
   // 1. HOME SCREEN (Matches app-home.webp)
   function renderHomeScreen() {
-    const cur = currentTrack();
-    mainPane.innerHTML = `
-      <div class="hero-banner">
-        <img src="https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/9a/42/e5/9a42e526-9672-674e-b62c-16e1160f0394/190295689308.jpg/600x600bb.jpg" alt="Yellow Claw - Danger Days EP">
-        <div class="hero-overlay">
-          <div class="hero-eyebrow">Because you listen to <b>Yellow Claw</b></div>
-          <h1 class="hero-title">Yellow Claw - Danger Days EP</h1>
-          <div class="hero-cta-row">
-            <button class="hero-pill-btn press" data-action="play-id" data-id="danger-days-yc">View →</button>
-            <button class="hero-pill-btn secondary press" data-action="open-audiolab">Audio Lab · ${state.eq.enabled ? 'EQ ON' : 'Flat'}</button>
-          </div>
-        </div>
-      </div>
-
-      <section class="section-block">
-        <div class="section-head">
-          <h2>Recently Played <span class="chev">›</span></h2>
-          <button class="section-action press" data-action="go-stats">Stats & Re'cap</button>
-        </div>
-        <div class="h-scroll">
-          ${state.queue.map((t, idx) => `
-            <div class="album-card press ${cur && cur.id === t.id ? 'playing' : ''}" data-action="play-index" data-index="${idx}">
-              <div class="album-art-wrap">
-                <img src="${escapeHtml(t.artwork)}" alt="${escapeHtml(t.title)}" loading="lazy">
-                <span class="album-badge">${escapeHtml(t.codec || 'OPUS')}</span>
-                <div class="album-play-fab">▶</div>
-              </div>
-              <div class="album-title">${escapeHtml(t.title)}</div>
-              <div class="album-sub">${escapeHtml(t.artist)}</div>
-            </div>
-          `).join('')}
-        </div>
-      </section>
-
-      <section class="section-block">
-        <div class="section-head">
-          <h2>Speed dial <span class="chev">›</span></h2>
-          <button class="section-action press" data-action="shuffle-all">Shuffle all</button>
-        </div>
-        <div class="speed-dial-grid">
-          ${state.queue.slice(0, 6).map((t, idx) => `
-            <div class="speed-dial-item press ${cur && cur.id === t.id ? 'playing' : ''}" data-action="play-index" data-index="${idx}">
-              <img src="${escapeHtml(t.artwork)}" alt="${escapeHtml(t.title)}">
-              <div class="speed-dial-meta">
-                <div class="speed-dial-title">${escapeHtml(t.title)}</div>
-                <div class="speed-dial-artist">${escapeHtml(t.artist)}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </section>
-
-      <section class="section-block">
-        <div class="section-head">
-          <h2>Most Played <span class="chev">›</span></h2>
-          <button class="section-action press" data-action="upload-local">+ Local Audio</button>
-        </div>
-        <div class="song-list">
-          ${state.queue.map((t, idx) => renderSongRowHtml(t, idx, cur && cur.id === t.id)).join('')}
-        </div>
-      </section>
-    `;
+    renderPersonalHome();
   }
 
   function renderSongRowHtml(t, idx, isPlaying) {
@@ -862,7 +794,7 @@
                     <span>${escapeHtml(t.title)}</span>
                     <span class="codec-pill">${escapeHtml(t.codec)}</span>
                   </div>
-                  <div class="song-row-sub">${escapeHtml(t.artist)} · ${escapeHtml(t.source)}</div>
+                  <div class="song-row-sub">${escapeHtml(t.artist)} · ${escapeHtml(t.source)}<br>${escapeHtml(t.versionLabel)}</div>
                 </div>
                 <div class="song-row-actions">
                   <button class="row-icon-btn" title="Play">▶</button>
@@ -2257,7 +2189,7 @@
             artist,
             album: 'Imported Playlist',
             duration: 210,
-            codec: 'AAC 256',
+            codec: 'Preview',
             source: 'Imported',
             artwork: DATA.seedTracks[Math.floor(Math.random() * DATA.seedTracks.length)].artwork,
             searchQuery: `${artist} ${title}`,
@@ -2329,7 +2261,59 @@
     requestAnimationFrame(animationFrameLoop);
   }
 
+
+  function normalize(value) { return value.toLowerCase().normalize('NFKD').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
+  function playbackNotice(message) {
+    let el = document.getElementById('playbackNotice');
+    if (!el) { el = document.createElement('div'); el.id = 'playbackNotice'; el.setAttribute('role', 'status'); document.querySelector('.top-bar').after(el); }
+    el.textContent = message;
+  }
+  document.addEventListener('error', event => {
+    if (event.target instanceof HTMLImageElement && !event.target.dataset.fallback) {
+      event.target.dataset.fallback = 'true'; event.target.src = '../assets/img/logo.svg';
+    }
+  }, true);
+  let preferences;
+  try { preferences = JSON.parse(localStorage.getItem('mochy_preferences_v1')); } catch {}
+  let recommendations = [], recommendationStatus = '';
+  function renderPersonalHome() {
+    mainPane.innerHTML = `<section class="section-block"><h1 class="screen-title">Made for you</h1>
+      ${!preferences ? `<p>Choose the artists and genres you enjoy. We’ll use them to find music for your home.</p>
+      <form id="tasteForm"><label>Favorite artists (comma separated)<input class="taste-input" name="artists" placeholder="Adele, NIKI, Daft Punk" maxlength="200"></label>
+      <label>Favorite genres (comma separated)<input class="taste-input" name="genres" placeholder="Pop, Jazz, Electronic" maxlength="120"></label>
+      <p id="tasteError" role="status"></p><button class="hero-pill-btn" type="submit">Find my music</button></form>` :
+      `<p>Inspired by ${escapeHtml([...preferences.artists,...preferences.genres].join(', '))}</p><button class="filter-chip" id="changeTaste">Edit preferences</button>
+      <p role="status">${escapeHtml(recommendationStatus)}</p><button class="filter-chip" id="refreshRecommendations">Refresh recommendations</button>
+      <div class="song-list">${recommendations.map((t,i)=>`<button class="song-row recommendation-row" data-rec="${i}"><img width="56" height="56" src="${escapeHtml(t.artwork)}" alt=""><span class="song-row-info"><span class="song-row-title">${escapeHtml(t.title)}</span><span class="song-row-sub">${escapeHtml(t.artist)} · Preview</span></span></button>`).join('')}</div>`}</section>`;
+    document.getElementById('tasteForm')?.addEventListener('submit', e => {
+      e.preventDefault(); const form = new FormData(e.target);
+      const split = key => String(form.get(key)).split(',').map(x=>x.trim()).filter(Boolean).slice(0,4);
+      const next = {artists:split('artists'),genres:split('genres')};
+      if (!next.artists.length && !next.genres.length) { document.getElementById('tasteError').textContent='Enter at least one artist or genre.'; return; }
+      preferences=next; try { localStorage.setItem('mochy_preferences_v1',JSON.stringify(next)); } catch { }
+      loadRecommendations();
+    });
+    document.getElementById('changeTaste')?.addEventListener('click',()=>{preferences=null;renderPersonalHome();});
+    document.getElementById('refreshRecommendations')?.addEventListener('click',loadRecommendations);
+    mainPane.querySelectorAll('[data-rec]').forEach(el=>el.addEventListener('click',()=>{const t=recommendations[Number(el.dataset.rec)]; let i=state.queue.findIndex(x=>x.id===t.id); if(i<0){i=state.queue.push(t)-1;} loadAndPlayTrack(i);}));
+  }
+  async function loadRecommendations() {
+    const taste = preferences;
+    recommendationStatus='Finding music…'; if(state.activeTab==='home') renderPersonalHome();
+    const results=await Promise.allSettled([...taste.artists,...taste.genres].map(async term=>{
+      const response=await fetch('https://itunes.apple.com/search?entity=song&limit=12&term='+encodeURIComponent(term), {signal:AbortSignal.timeout(12000)});
+      if(!response.ok) throw Error('Catalog unavailable');
+      return (await response.json()).results.filter(t=>t.previewUrl && (taste.artists.some(a=>normalize(t.artistName).includes(normalize(a))) || taste.genres.some(g=>normalize(t.primaryGenreName || '').includes(normalize(g)))));
+    }));
+    if(preferences!==taste)return;
+    const tracks=results.flatMap(r=>r.status==='fulfilled'?r.value:[]);
+    recommendations=[...new Map(tracks.map(t=>[t.trackId,{id:'apple-'+t.trackId,title:t.trackName,artist:t.artistName,album:t.collectionName,artwork:(t.artworkUrl100||'').replace('100x100bb','600x600bb'),streamUrl:t.previewUrl,source:'iTunes · Preview',codec:'Preview',duration:0}])).values()].slice(0,24);
+    recommendationStatus=recommendations.length?'Catalog recommendations · audio previews, not full tracks.': 'No recommendations available. Try another artist or refresh. Your preferences are saved.';
+    if(state.activeTab==='home')renderPersonalHome();
+  }
+
   // ---- Initial Boot ---------------------------------------------------------
+  if (preferences) loadRecommendations();
   applyShellMode();
   renderMainView();
   updatePlayerMetaUI();
