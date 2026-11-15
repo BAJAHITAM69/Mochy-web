@@ -1,4 +1,4 @@
-# puts the homepage and wiki in docs/ on github pages whenever they change on main
+# Deploy docs/ (homepage, wiki, and /app/ web player) when main changes.
 name: Pages
 
 on:
